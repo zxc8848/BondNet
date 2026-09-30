@@ -1,0 +1,59 @@
+# ---- Large artifacts: archived on Zenodo, NOT in git ----
+data/
+checkpoints/
+results/
+*.pt
+*.ckpt
+*.sdf
+*.msgpack
+*.msgpack.tar.gz
+*.npz
+*.zip
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Internal / working files (do not publish) ----
+.agents/
+tmp/
+soft_copyright_materials/
+PROMPT_FOR_AI.md
+PAPER_DRAFT.md
+BondNet_Proposal.md
+EXPERIMENT_PLAN.md
+SUBMISSION_CHECKLIST.md
+YuelBond.pdf
+*.docx
+*.jpg
+*.jpeg
+*.png
+实验计划
+scripts/_mount_probe.py
+
+# ---- LaTeX build artifacts (if you choose to include paper/) ----
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+
+# Release staging (uploaded separately)
+release_v3/

@@ -1,0 +1,11 @@
+torch>=2.0.0
+torch-geometric>=2.3.0
+torch-scatter
+torch-sparse
+rdkit
+ase
+numpy
+scipy
+pyyaml
+tqdm
+scikit-learn
