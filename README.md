@@ -14,7 +14,7 @@ hydrogen-count control, and a hard two-stage recipe are provided as comparators.
 - Paper: *BondNet: Molecular Bond Perception from 3D Coordinates with Explicit
   Hydrogen Context* (Zhang & Zeng, revised manuscript).
 - Checkpoints, split labels, external-cohort files and all result files:
-  **Zenodo — [RELEASE: Zenodo DOI]**.
+  **Zenodo — [doi:10.5281/zenodo.23054626](https://doi.org/10.5281/zenodo.23054626)**.
 - Baselines: RDKit `DetermineBonds` (RDKit's implementation of xyz2mol, default
   and post-hoc `useHueckel=True` configurations) and OpenBabel; an exploratory
   comparison with YuelBond.
@@ -70,7 +70,7 @@ Download the Zenodo record and unpack the archives in the repository root:
 
 | Archive | Contents |
 |---|---|
-| `checkpoints_v4.zip` | Selected checkpoints (`best_e2e.pt`) and training logs for the joint explicit-H, joint heavy-only, oracle hydrogen-count and hard two-stage models, seeds 42–44 |
+| `checkpoints_v4_weights.zip` | Selected checkpoints (`best_e2e.pt`, model weights without optimizer state) and training logs for the joint explicit-H, joint heavy-only, oracle hydrogen-count and hard two-stage models, seeds 42–44 |
 | `geom_fixed_split_and_test_inputs.zip` | Fixed 80/10/10 molecule-group split labels for all 269,739 GEOM-DRUGS random1/re10 molecules; the 27,240-molecule fixed-test SDFs at σ = 0, 0.10, 0.20 Å with molecule-keyed noise |
 | `geom_random1_re10_source_sdf.zip` | The GEOM-DRUGS random1/re10 source SDF used to build all GEOM caches |
 | `external_pubchem3d_cohort_v4.zip` | The frozen 10,000-molecule PubChem3D cohort: manifest, CID list, cohort and perturbed SDFs, feature caches, deviation records 001 and 002 |
@@ -190,7 +190,7 @@ data directory configured).
   author    = {Zhang, Xiaochen and Zeng, Hui},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {[RELEASE: Zenodo DOI]}
+  doi       = {10.5281/zenodo.23054626}
 }
 ```
 

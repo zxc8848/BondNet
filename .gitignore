@@ -1,7 +1,7 @@
 # ---- Large artifacts: archived on Zenodo, NOT in git ----
-data/
-checkpoints/
-results/
+/data/
+/checkpoints/
+/results/
 *.pt
 *.ckpt
 *.sdf
