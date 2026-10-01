@@ -14,7 +14,8 @@ hydrogen-count control, and a hard two-stage recipe are provided as comparators.
 - Paper: *BondNet: Molecular Bond Perception from 3D Coordinates with Explicit
   Hydrogen Context* (Zhang & Zeng, revised manuscript).
 - Checkpoints, split labels, external-cohort files and all result files:
-  **Zenodo — [doi:10.5281/zenodo.23054626](https://doi.org/10.5281/zenodo.23054626)**.
+  **Zenodo — [doi:10.5281/zenodo.23080342](https://doi.org/10.5281/zenodo.23080342)** (version `v4.1-revision`; the data and
+  weight archives are byte-identical to the earlier version 10.5281/zenodo.23054626).
 - Baselines: RDKit `DetermineBonds` (RDKit's implementation of xyz2mol, default
   and post-hoc `useHueckel=True` configurations) and OpenBabel; an exploratory
   comparison with YuelBond.
@@ -23,6 +24,8 @@ This repository contains source code, scripts and tests only. Datasets,
 feature caches and checkpoints are on Zenodo.
 
 ---
+
+The historical bondnet/model/stage2_aromaticity.py module is not used by the primary model. It is retained only for historical reproducibility.
 
 ## Repository layout
 
@@ -40,7 +43,7 @@ tests/          Regression tests (fixed split, edge direction, keyed noise, scor
 Python ≥ 3.9; a CUDA GPU is recommended for training.
 
 ```bash
-git clone https://github.com/zxc8848/BondNet.git
+git clone --branch v4.1-revision https://github.com/zxc8848/BondNet.git
 cd BondNet
 pip install -r requirements.txt
 pip install -e .
@@ -60,26 +63,53 @@ any Open Babel baseline.
 The revision experiments used Python 3.10, PyTorch 2.5.1, RDKit 2026.03.6 and
 Open Babel 3.1.1 (conda-forge; reports 3.1.0) on Windows with an RTX 4090. The
 `.ps1` runners are Windows PowerShell wrappers around the Python commands; the
-Python scripts themselves are platform-independent.
+Python scripts themselves are platform-independent. Historical PowerShell runners default to the authors' Python path; pass the -Python parameter explicitly. The new release entry point uses the Python executable that invokes it.
 
 ---
 
 ## Data and checkpoints (Zenodo)
 
-Download the Zenodo record and unpack the archives in the repository root:
+Download the data and weights from the Zenodo record https://doi.org/10.5281/zenodo.23080342. Use the installation command below to validate and place the files; manual extraction into the repository root does not install the published GEOM paths correctly:
 
 | Archive | Contents |
 |---|---|
 | `checkpoints_v4_weights.zip` | Selected checkpoints (`best_e2e.pt`, model weights without optimizer state) and training logs for the joint explicit-H, joint heavy-only, oracle hydrogen-count and hard two-stage models, seeds 42–44 |
-| `geom_fixed_split_and_test_inputs.zip` | Fixed 80/10/10 molecule-group split labels for all 269,739 GEOM-DRUGS random1/re10 molecules; the 27,240-molecule fixed-test SDFs at σ = 0, 0.10, 0.20 Å with molecule-keyed noise |
+| `geom_fixed_split_and_test_inputs.zip` | Fixed 80/10/10 GEOM source-record-group split labels for all 269,739 GEOM-DRUGS random1/re10 molecules; the 27,240-molecule fixed-test SDFs at σ = 0, 0.10, 0.20 Å with molecule-keyed noise |
 | `geom_random1_re10_source_sdf.zip` | The GEOM-DRUGS random1/re10 source SDF used to build all GEOM caches |
 | `external_pubchem3d_cohort_v4.zip` | The frozen 10,000-molecule PubChem3D cohort: manifest, CID list, cohort and perturbed SDFs, feature caches, deviation records 001 and 002 |
 | `results_v4.zip` | Every result file behind the tables and figures of the revised manuscript |
-| `BondNet_code_v4.zip` | Snapshot of this repository at the release commit |
+| `BondNet_code_v4.1.zip` | Snapshot of this repository at tag `v4.1-revision` |
+| `identity_overlap_v4.1.zip` | GEOM identity-overlap sensitivity analysis (`results/revision_v5_identity_overlap/`) |
 
-Unpacked paths follow the repository layout: `checkpoints/…`, `data/…`,
-`results/…`. `checkpoints/SOURCE_PATHS.txt` maps the released checkpoint
-names to the paths used by the original run scripts.
+Install verified weights and the external cohort from downloaded ZIP files:
+
+~~~bash
+python scripts/reproduce_release.py install --archives /path/to/downloads
+python scripts/reproduce_release.py verify
+python scripts/reproduce_release.py evaluate --models joint_seed42 --sigmas 0 --max-mols 32 --output results/release_smoke
+# All nine model/seed combinations, all three noise levels:
+python scripts/reproduce_release.py evaluate --output results/release_full
+# Also install GEOM source SDF, fixed split CSV and keyed test SDFs:
+python scripts/reproduce_release.py install --archives /path/to/downloads --with-geom
+~~~
+
+The installer validates the original published archive SHA-256 values. It maps
+geom/geom_drugs_all_random1_rel10.sdf to data/geom_drugs_all_random1_rel10.sdf,
+geom/geom_random1_re10_fixed_split_labels.csv to data/geom_random1_re10_fixed_split_labels.csv,
+and geom/fixed_test_keyed_noise/* to data/robustness_27240_keyed/*.
+Other archives retain their checkpoints/, data/ and results/ prefixes.
+Released checkpoints are loaded at their public paths; original experiment
+paths are resolved through SOURCE_PATHS.txt. Different existing files are never overwritten.
+
+The release verifier checks the unchanged frozen manifest and data,
+the active code snapshot, byte-exact archived copies of frozen protocol code,
+checkpoint file hashes and tensor hashes, and the correspondence between each
+original checkpoint digest in the frozen manifest and its released tensor hash.
+Only CRLF/LF differences are accepted between active and archived protocol files.
+Verification fails on missing or changed inputs. The original
+build_external_cohort_v3.py verify remains the verifier for the original full
+checkpoints and paths; it is not the release-package entry point.
+Replay outputs are separate from original results and require an empty directory.
 
 The fixed split is a deterministic FNV-1a hash of `geom_mol_idx` (seed 42;
 `bondnet.data.dataset._assign_split_label`). Build feature caches from the
@@ -145,10 +175,11 @@ evaluated on it; `data/external_v3/manifest.json` records every hash, the
 evaluation plan and the reporting rules.
 
 ```bash
-python scripts/build_external_cohort_v3.py verify        # re-checks all frozen hashes
-powershell scripts/run_revision_v3_external.ps1          # one-shot evaluation (skips completed outputs)
-python scripts/summarize_revision_v3_external.py
-python scripts/summarize_revision_v3_external_subset.py  # Deviation 001 sensitivity analysis
+python scripts/reproduce_release.py verify             # released weights and frozen evidence
+python scripts/reproduce_release.py evaluate --output results/release_external
+# Per-model aggregate.json files contain the undirected primary metrics.
+# Historical summarizers read the original results/revision_v3_external tree;
+# they do not summarize the separate replay directory.
 ```
 
 To rebuild the cohort from the public PubChem3D download
@@ -180,20 +211,50 @@ data directory configured).
 ```bibtex
 @article{bondnet2026,
   title  = {BondNet: Molecular Bond Perception from 3D Coordinates with Explicit Hydrogen Context},
-  author = {Zhang, Xiaochen and Zeng, Hui},
+  author = {Zhang, Xiaocheng and Zeng, Hui},
   year   = {2026},
   note   = {Revised manuscript}
 }
 
-@misc{bondnet_zenodo_v4,
+@misc{bondnet_zenodo_v41,
   title     = {BondNet revision release: checkpoints, split labels, external cohort and results},
-  author    = {Zhang, Xiaochen and Zeng, Hui},
+  author    = {Zhang, Xiaocheng and Zeng, Hui},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.23054626}
+  doi       = {10.5281/zenodo.23080342}
 }
 ```
 
 ## License
 
 See `LICENSE`.
+
+## v4.1-revision: reproducibility and identity-overlap correction (2026-10-01)
+
+Tag `v4.1-revision` corrects tag `v4-revision` (commit
+d206173bef2a9813695d481aeae99508a09a82fc), whose README verification command
+expected the original checkpoint paths and full-file hashes and therefore failed
+on the published weights-only archive. The historical tag and the frozen
+manifest are unchanged. Zenodo version 10.5281/zenodo.23080342 carries the same data and weight
+archives as 10.5281/zenodo.23054626 plus this code and the identity-overlap
+results. The all-version concept DOI is 10.5281/zenodo.21308174;
+the older version-specific record is 10.5281/zenodo.21308175.
+New code, documentation and identity-exclusion results are distinguished
+from the historical snapshot.
+
+GEOM partitions separate geom_mol_idx source-record groups, not all canonical
+chemical identities. Of 27,240 test records, 113 match a training identity
+with stereochemistry and 382 match without it; including validation identities
+gives 131 and 439 excluded records. These counts are nested and must not be added.
+Original labels remain unchanged. Install the original result archive using the same checksum-aware installer,
+then extract identity_overlap_v4.1.zip from the Zenodo record into this
+repository root (its paths start with results/). Run:
+
+~~~bash
+python scripts/reproduce_release.py install --archives /path/to/downloads --with-geom --with-results
+# Optional: rebuild the supplied identity map from the original source SDF.
+python scripts/build_geom_identity_map.py
+python scripts/analyze_identity_overlap_sensitivity.py --identity-map results/revision_v5_identity_overlap/geom_identity_map.csv
+~~~
+
+This is a post-hoc sensitivity analysis, not a new independent test.
