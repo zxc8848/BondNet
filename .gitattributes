@@ -1,0 +1,3 @@
+# Store every file byte-for-byte: release_integrity.json and the frozen
+# external-cohort manifest record SHA-256 hashes of the exact file bytes.
+* -text
